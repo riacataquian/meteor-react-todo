@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
 import { createContainer } from 'meteor/react-meteor-data'
 
@@ -8,6 +9,21 @@ import Task from './Task.jsx'
 
 // App component - represents the whole app
 class App extends Component {
+  handleSubmit (event) {
+    event.preventDefault()
+
+    // Find the text field via the React ref
+    const text = ReactDOM.findDOMNode(this.refs.textInput).value.trim()
+
+    Tasks.insert({
+      text,
+      createdAt: new Date()
+    })
+
+    // Clear form
+    ReactDOM.findDOMNode(this.refs.textInput).value = ''
+  }
+
   getTasks () {
     return [
       { _id: 1, text: 'Task 1' },
@@ -27,6 +43,10 @@ class App extends Component {
       <div className='container'>
         <header>
           <h1>Todo List</h1>
+          {/* This binding is necessary to make `this` work in the callback */}
+          <form className="new-task" onSubmit={this.handleSubmit.bind(this)}>
+            <input type="text" ref="textInput" placeholder="Type to add new tasks" />
+          </form>
         </header>
 
         <ul>
@@ -47,6 +67,6 @@ App.propTypes = {
 /* the App re-renders. */
 export default createContainer(() => {
   return {
-    tasks: Tasks.find({}).fetch()
+    tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch()
   }
 }, App)
